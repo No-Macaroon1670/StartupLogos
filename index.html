@@ -104,11 +104,11 @@ const LOGOS = {
 
   bestbuy: `
   <svg viewBox="0 0 480 300" width="430" height="270" role="img" aria-label="BestBuy parody logo">
-    <!-- yellow price tag -->
-    <path d="M60 70 H330 a18 18 0 0 1 18 18 V210 a18 18 0 0 1 -18 18 H60 L18 149 Z" fill="#fff200"/>
-    <circle cx="70" cy="149" r="13" fill="#0a0a0f"/>
-    <text x="200" y="138" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="56" font-weight="800" fill="#1d1d1b">BEST</text>
-    <text x="200" y="198" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="56" font-weight="800" fill="#1d1d1b">BUY</text>
+    <!-- yellow price tag, centred in the viewBox -->
+    <path d="M110 70 H352 a18 18 0 0 1 18 18 V212 a18 18 0 0 1 -18 18 H110 L70 150 Z" fill="#fff200"/>
+    <circle cx="120" cy="150" r="13" fill="#0a0a0f"/>
+    <text x="240" y="138" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="56" font-weight="800" fill="#1d1d1b">BEST</text>
+    <text x="240" y="198" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="56" font-weight="800" fill="#1d1d1b">BUY</text>
     <text x="240" y="270" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="22" font-weight="700" fill="#d7d8e0">Bet on what lasts.™</text>
   </svg>`,
 
@@ -171,7 +171,7 @@ const LOGOS = {
   </svg>`,
 
   openal: `
-  <svg viewBox="0 0 460 330" width="430" height="300" role="img" aria-label="O'Pen Al parody logo">
+  <svg viewBox="0 0 460 330" width="430" height="300" role="img" aria-label="O?Pen Al! parody logo">
     <!-- OpenAI-style six-fold blossom, in letter-paper ink -->
     <g fill="none" stroke="#efe9dc" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
       <path id="opetal" d="M230 98 C252 84 252 48 230 38 C208 48 208 84 230 98 Z"/>
@@ -184,8 +184,8 @@ const LOGOS = {
     <path d="M216 122 L244 122 L230 190 Z" fill="#efe9dc"/>
     <line x1="230" y1="143" x2="230" y2="184" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round"/>
     <circle cx="230" cy="142" r="3.6" fill="#0a0a0f"/>
-    <text x="230" y="252" text-anchor="middle" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="54" font-weight="700" letter-spacing="-1" fill="#f4f4f8">O<tspan fill="#e0392f">&#8217;</tspan>Pen Al</text>
-    <text x="230" y="286" text-anchor="middle" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="13" letter-spacing="3" fill="#9aa0b4">PENPAL LETTERS TO FAT ALBERT</text>
+    <text x="230" y="252" text-anchor="middle" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="54" font-weight="700" letter-spacing="-1" fill="#f4f4f8">O<tspan baseline-shift="super" font-size="32" fill="#e0392f">?</tspan>Pen Al!</text>
+    <text x="230" y="286" text-anchor="middle" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="13" letter-spacing="3" fill="#9aa0b4">ASK FAT ALBERT ANYTHING</text>
   </svg>`,
 
   anthotpic: `
@@ -230,7 +230,7 @@ const S = [
   {type:'title', html:`
     <div class="title">Start-up ideas my friend<br><span class="pop">shot down</span></div>`},
 
-  {type:'desc', t:"An app where you bet on how future events will turn out."},
+  {type:'desc', t:"A betting market where you use points instead of money but not owned by Meta."},
   {type:'ad', logo:'metaculus', slogan:"Turns out it already exists."},
 
   {type:'desc', t:"A giant chest of drawers where you drop in your bets on the best-performing businesses."},
@@ -242,7 +242,7 @@ const S = [
   {type:'desc', t:"A betting market for the birth weight of royal babies."},
   {type:'ad', logo:'princeton', slogan:"Wager the weight of the heir."},
 
-  {type:'desc', t:"A prediction market exclusively about the city of Chicago."},
+  {type:'desc', t:"A prediction market for everything related to Chicago."},
   {type:'ad', logo:'uchicago', slogan:"Bet on everything Chicago."},
 
   {type:'desc', t:"A company that monitors people with gambling problems."},
@@ -251,10 +251,10 @@ const S = [
   {type:'desc', t:"A blog of scathing takedowns of big tech, written by guest contributors."},
   {type:'ad', logo:'metacritic', slogan:"Big Tech, scored out of 100."},
 
-  {type:'desc', t:"A service for mailing handwritten penpal letters to Fat Albert."},
-  {type:'ad', logo:'openal', img:"openal.png", slogan:"Hey, hey, hey — you've got mail."},
+  {type:'desc', t:"A service for asking Fat Albert any question you have."},
+  {type:'ad', logo:'openal', img:"openal.png", slogan:"Hey, hey, hey — ask away."},
 
-  {type:'desc', t:"A service that sends you pictures of attractive people you might like."},
+  {type:'desc', t:"An app that provides a random picture of a hot person every day."},
   {type:'ad', logo:'anthotpic', slogan:"Constitutionally attractive."},
 
   {type:'desc', t:"A weapons company based on the Na'vi military from Avatar."},
