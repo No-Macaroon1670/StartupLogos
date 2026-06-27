@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>All The Good Ideas Are Already Taken — a scrollytelling short</title>
+<style>
+  :root{
+    --bg:#0a0a0f; --ink:#f4f4f8; --dim:#9aa0b4; --accent:#7c5cff;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.4;
+  }
+
+  /* reading-progress bar (newspaper style) */
+  #prog{position:fixed; top:0; left:0; height:3px; width:0; background:var(--accent); z-index:80; transition:width .08s linear}
+
+  /* fixed vignette for cinematic depth */
+  .vig{position:fixed; inset:0; pointer-events:none; box-shadow:inset 0 0 240px 70px rgba(0,0,0,.55); z-index:70}
+
+  /* scroll hint */
+  #hint{position:fixed; bottom:24px; left:0; right:0; text-align:center; z-index:75;
+    color:#6b6f82; font-size:12px; letter-spacing:.22em; text-transform:uppercase; transition:opacity .5s}
+  #hint .chev{display:block; margin:9px auto 0; width:13px; height:13px; border-right:2px solid #6b6f82; border-bottom:2px solid #6b6f82; transform:rotate(45deg); animation:bob 1.6s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:rotate(45deg) translate(0,0)} 50%{transform:rotate(45deg) translate(4px,4px)}}
+
+  /* steps */
+  .step{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:14vh 8vw}
+  .panel{width:100%; max-width:900px; display:flex; flex-direction:column; align-items:center; text-align:center}
+
+  /* the scrollytelling reveal: children fade/slide in when the panel hits
+     the centre band, and back out when it leaves */
+  .rv{opacity:0; transform:translateY(34px);
+    transition:opacity .7s ease, transform .85s cubic-bezier(.2,.7,.2,1);
+    transition-delay:var(--d,0s); will-change:opacity,transform}
+  .panel.in .rv{opacity:1; transform:none}
+
+  /* ---------- Opening title ---------- */
+  .title{font-size:clamp(34px,7vw,92px); font-weight:800; line-height:1.04; letter-spacing:-.02em}
+  .title .pop{color:var(--accent)}
+
+  /* ---------- Deadpan idea description ---------- */
+  .desc{font-size:clamp(20px,3.4vw,38px); font-weight:500; color:#d7dae4; max-width:780px; line-height:1.35; letter-spacing:-.01em}
+
+  /* ---------- Logo + slogan ---------- */
+  .ad{width:min(820px,92vw); display:flex; flex-direction:column; align-items:center}
+  .logoStage{height:min(46vh,360px); display:flex; align-items:center; justify-content:center}
+  .logoStage svg{max-width:92vw; height:auto; max-height:100%}
+  .logoImg{max-height:min(50vh,380px); max-width:min(720px,90vw); object-fit:contain; border-radius:18px}
+  .slogan{margin-top:26px; font-size:clamp(16px,2.4vw,27px); font-weight:500; color:#aeb2c2; letter-spacing:.01em}
+  svg{display:block}
+
+  @media (prefers-reduced-motion: reduce){
+    .rv{transition:opacity .4s ease; transform:none}
+    #hint .chev{animation:none}
+    html{scroll-behavior:auto}
+  }
+</style>
+</head>
+<body>
+<div id="prog"></div>
+<div class="vig"></div>
+<main id="story"></main>
+<div id="hint">Scroll<span class="chev"></span></div>
+
+<script>
+/* =========================================================================
+   PARODY LOGOS — inline SVG. Each evokes a real brand but is clearly a gag.
+   ========================================================================= */
+const LOGOS = {
+
+  metaculus: `
+  <svg viewBox="0 0 360 360" width="320" height="320" role="img" aria-label="Metaculus parody logo">
+    <defs></defs>
+    <circle cx="180" cy="170" r="120" fill="#10243a" stroke="#2bb3c0" stroke-width="3"/>
+    <circle cx="180" cy="170" r="120" fill="none" stroke="#2bb3c0" stroke-width="1" opacity="0.4" transform="scale(1.06)" transform-origin="180 170"/>
+    <!-- oracle bars rising = forecast -->
+    <g fill="#2bb3c0">
+      <rect x="120" y="200" width="22" height="40" rx="3" opacity="0.55"/>
+      <rect x="150" y="175" width="22" height="65" rx="3" opacity="0.7"/>
+      <rect x="180" y="150" width="22" height="90" rx="3" opacity="0.85"/>
+      <rect x="210" y="130" width="22" height="110" rx="3"/>
+    </g>
+    <path d="M120 215 L150 188 L180 165 L210 145" fill="none" stroke="#7fe9f2" stroke-width="4" stroke-linecap="round"/>
+    <text x="180" y="320" text-anchor="middle" font-family="Georgia,serif" font-size="40" font-weight="700" fill="#eaf6f8" letter-spacing="1">Metaculus</text>
+  </svg>`,
+
+  bbb: `
+  <svg viewBox="0 0 460 320" width="420" height="290" role="img" aria-label="Bettor's Business Bureau parody logo">
+    <rect x="20" y="20" width="420" height="200" rx="12" fill="#0b3a73"/>
+    <text x="230" y="115" text-anchor="middle" font-family="Georgia,serif" font-size="120" font-weight="800" fill="#fff" letter-spacing="-6">BBB</text>
+    <!-- poker chip replacing the torch -->
+    <g transform="translate(230,165)">
+      <circle r="26" fill="#e63946" stroke="#fff" stroke-width="4"/>
+      <circle r="14" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="5 6"/>
+    </g>
+    <text x="230" y="262" text-anchor="middle" font-family="Georgia,serif" font-size="30" font-weight="700" fill="#0b3a73">The Bettor&#8217;s Business Bureau</text>
+    <text x="230" y="295" text-anchor="middle" font-family="Georgia,serif" font-size="16" fill="#5b6072" letter-spacing="2">ACCREDITED · SPECULATIVELY</text>
+  </svg>`,
+
+  bestbuy: `
+  <svg viewBox="0 0 480 300" width="430" height="270" role="img" aria-label="BestBuy parody logo">
+    <!-- yellow price tag -->
+    <path d="M60 70 H330 a18 18 0 0 1 18 18 V210 a18 18 0 0 1 -18 18 H60 L18 149 Z" fill="#fff200"/>
+    <circle cx="70" cy="149" r="13" fill="#0a0a0f"/>
+    <text x="200" y="138" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="56" font-weight="800" fill="#1d1d1b">BEST</text>
+    <text x="200" y="198" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="56" font-weight="800" fill="#1d1d1b">BUY</text>
+    <text x="240" y="270" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="22" font-weight="700" fill="#d7d8e0">Bet on what lasts.™</text>
+  </svg>`,
+
+  princeton: `
+  <svg viewBox="0 0 380 410" width="320" height="345" role="img" aria-label="PrinceTon parody logo">
+    <!-- shield -->
+    <path d="M190 30 C150 50 90 55 70 55 C70 180 100 280 190 330 C280 280 310 180 310 55 C290 55 230 50 190 30 Z" fill="#f58025" stroke="#1d1d1b" stroke-width="6"/>
+    <!-- crown -->
+    <g transform="translate(190,120)" fill="#1d1d1b">
+      <path d="M-52 14 L-52 -22 L-30 0 L0 -34 L30 0 L52 -22 L52 14 Z"/>
+      <circle cx="-52" cy="-26" r="6"/><circle cx="0" cy="-40" r="7"/><circle cx="52" cy="-26" r="6"/>
+    </g>
+    <!-- barbell "TON" weight -->
+    <g transform="translate(190,205)" fill="#1d1d1b">
+      <rect x="-58" y="-9" width="116" height="18" rx="6"/>
+      <rect x="-72" y="-20" width="18" height="40" rx="4"/>
+      <rect x="54" y="-20" width="18" height="40" rx="4"/>
+    </g>
+    <text x="190" y="388" text-anchor="middle" font-family="Georgia,serif" font-size="48" font-weight="800" letter-spacing="-0.5" fill="#f4ede2">Prince<tspan fill="#f58025">Ton</tspan></text>
+  </svg>`,
+
+  uchicago: `
+  <svg viewBox="0 0 380 360" width="320" height="320" role="img" aria-label="Universe of Chicago parody logo">
+    <path d="M190 30 C150 50 90 55 70 55 C70 180 100 280 190 330 C280 280 310 180 310 55 C290 55 230 50 190 30 Z" fill="#800000" stroke="#3d0000" stroke-width="6"/>
+    <!-- orbits / universe -->
+    <g transform="translate(190,160)" stroke="#ffd9d9" fill="none" stroke-width="3">
+      <ellipse rx="90" ry="34"/>
+      <ellipse rx="90" ry="34" transform="rotate(60)"/>
+      <ellipse rx="90" ry="34" transform="rotate(120)"/>
+    </g>
+    <circle cx="190" cy="160" r="14" fill="#ffd9d9"/>
+    <circle cx="270" cy="135" r="6" fill="#fff"/>
+    <circle cx="120" cy="190" r="5" fill="#fff"/>
+    <text x="190" y="298" text-anchor="middle" font-family="Georgia,serif" font-size="26" font-weight="800" fill="#ffd9d9">UNIVERSE</text>
+    <text x="190" y="320" text-anchor="middle" font-family="Georgia,serif" font-size="15" fill="#ffd9d9" letter-spacing="3">OF CHICAGO</text>
+  </svg>`,
+
+  proctor: `
+  <svg viewBox="0 0 460 320" width="420" height="290" role="img" aria-label="Proctor Gamble parody logo">
+    <circle cx="230" cy="150" r="120" fill="#0a2a6b"/>
+    <!-- man-in-the-moon as a surveillance eye -->
+    <path d="M200 80 a72 72 0 1 0 60 130 a58 58 0 1 1 -60 -130 Z" fill="#cfe0ff"/>
+    <circle cx="225" cy="150" r="30" fill="#0a2a6b"/>
+    <circle cx="225" cy="150" r="13" fill="#cfe0ff"/>
+    <!-- watching stars -->
+    <g fill="#cfe0ff">
+      <circle cx="300" cy="95" r="4"/><circle cx="330" cy="140" r="3"/><circle cx="315" cy="190" r="4"/>
+    </g>
+    <text x="230" y="300" text-anchor="middle" font-family="Georgia,serif" font-size="34" font-weight="800" fill="#cfe0ff">Proctor<tspan fill="#7fa8ff">:</tspan> Gamble</text>
+  </svg>`,
+
+  metacritic: `
+  <svg viewBox="0 0 460 330" width="430" height="300" role="img" aria-label="Metacritics parody logo">
+    <!-- metascore badge, scored in savage red -->
+    <rect x="180" y="40" width="100" height="100" rx="16" fill="#d4313b"/>
+    <text x="230" y="114" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="66" font-weight="800" fill="#fff">9</text>
+    <text x="230" y="172" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="700" fill="#9aa0b4" letter-spacing="3">METASCORE</text>
+    <text x="230" y="250" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="48" font-weight="800" fill="#f4f4f8"><tspan fill="#ffcc33">meta</tspan>critics</text>
+    <text x="230" y="288" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="14" fill="#5b6072" letter-spacing="2">GENERALLY UNFAVORABLE REVIEWS</text>
+  </svg>`,
+
+  openal: `
+  <svg viewBox="0 0 460 330" width="430" height="300" role="img" aria-label="O'Pen Al parody logo">
+    <!-- OpenAI-style six-fold blossom, in letter-paper ink -->
+    <g fill="none" stroke="#efe9dc" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+      <path id="opetal" d="M230 98 C252 84 252 48 230 38 C208 48 208 84 230 98 Z"/>
+      <use href="#opetal" transform="rotate(60 230 110)"/>
+      <use href="#opetal" transform="rotate(120 230 110)"/>
+      <use href="#opetal" transform="rotate(240 230 110)"/>
+      <use href="#opetal" transform="rotate(300 230 110)"/>
+    </g>
+    <!-- ...but the bottom petal is a fountain-pen nib -->
+    <path d="M216 122 L244 122 L230 190 Z" fill="#efe9dc"/>
+    <line x1="230" y1="143" x2="230" y2="184" stroke="#0a0a0f" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="230" cy="142" r="3.6" fill="#0a0a0f"/>
+    <text x="230" y="252" text-anchor="middle" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="54" font-weight="700" letter-spacing="-1" fill="#f4f4f8">O<tspan fill="#e0392f">&#8217;</tspan>Pen Al</text>
+    <text x="230" y="286" text-anchor="middle" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="13" letter-spacing="3" fill="#9aa0b4">PENPAL LETTERS TO FAT ALBERT</text>
+  </svg>`,
+
+  anthotpic: `
+  <svg viewBox="0 0 460 330" width="430" height="300" role="img" aria-label="An thot pic parody logo">
+    <!-- a 'hot pic' polaroid, in Anthropic clay -->
+    <g transform="rotate(-6 230 110)">
+      <rect x="168" y="40" width="124" height="152" rx="7" fill="#f0eee6"/>
+      <rect x="178" y="50" width="104" height="96" rx="2" fill="#2a1b15"/>
+      <path d="M230 66 C252 96 254 112 245 124 C239 132 232 134 230 134 C228 134 221 132 215 124 C206 112 208 96 230 66 Z" fill="#cc785c"/>
+      <path d="M230 99 C239 110 239 119 233 125 C230 128 227 128 226 125 C221 119 223 110 230 99 Z" fill="#f3c9b3"/>
+      <path d="M230 182 C224 176 214 171 214 163 C214 158 218 155 222 155 C226 155 229 158 230 160 C231 158 234 155 238 155 C242 155 246 158 246 163 C246 171 236 176 230 182 Z" fill="#cc785c"/>
+    </g>
+    <!-- sparkle -->
+    <path d="M304 46 C306 56 308 58 318 60 C308 62 306 64 304 74 C302 64 300 62 290 60 C300 58 302 56 304 46 Z" fill="#cc785c"/>
+    <text x="230" y="252" text-anchor="middle" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="50" font-weight="600" letter-spacing="-0.5" fill="#cc785c">An thot pic</text>
+    <text x="230" y="286" text-anchor="middle" font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="13" letter-spacing="3" fill="#9aa0b4">PICTURES OF PEOPLE YOU MIGHT LIKE</text>
+  </svg>`,
+
+  navidia: `
+  <svg viewBox="0 0 460 330" width="430" height="300" role="img" aria-label="Na'viDIA parody logo">
+    <!-- soft glow -->
+    <path d="M140 120 Q230 56 320 120 Q230 184 140 120 Z" fill="#76b900" opacity="0.18"/>
+    <!-- the NVIDIA eye, reborn as a Na'vi cat-eye, in NVIDIA green -->
+    <path d="M150 120 Q230 64 310 120 Q230 176 150 120 Z" fill="#76b900"/>
+    <ellipse cx="230" cy="120" rx="10" ry="41" fill="#08160a"/>
+    <circle cx="217" cy="103" r="6" fill="#eafff0" opacity="0.92"/>
+    <path d="M150 120 Q230 64 310 120 Q230 176 150 120 Z" fill="none" stroke="#3bb6ea" stroke-width="5"/>
+    <!-- Na'vi bioluminescent freckles -->
+    <g fill="#5fd0ff">
+      <circle cx="178" cy="92" r="3.5"/><circle cx="205" cy="80" r="3"/><circle cx="255" cy="80" r="2.6"/>
+      <circle cx="296" cy="150" r="3.4"/><circle cx="160" cy="146" r="3"/><circle cx="280" cy="170" r="2.6"/>
+    </g>
+    <text x="230" y="252" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-size="54" font-weight="900" letter-spacing="1" fill="#76b900">Na&#8217;viDIA</text>
+    <text x="230" y="286" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="13" letter-spacing="3" fill="#9aa0b4">NA&#8217;VI DEFENCE INDUSTRY AGENCY</text>
+  </svg>`
+};
+
+/* =========================================================================
+   SCENES
+   ========================================================================= */
+const S = [
+  {type:'title', html:`
+    <div class="title">Start-up ideas my friend<br><span class="pop">shot down</span></div>`},
+
+  {type:'desc', t:"An app where you bet on how future events will turn out."},
+  {type:'ad', logo:'metaculus', slogan:"Turns out it already exists."},
+
+  {type:'desc', t:"An office where you bet on which business will outperform the others over a year."},
+  {type:'ad', logo:'bbb', slogan:"A+ rating. Terrible odds."},
+
+  {type:'desc', t:"A market for betting on which product lasts longer after you buy it."},
+  {type:'ad', logo:'bestbuy', slogan:"Find out which one dies first."},
+
+  {type:'desc', t:"A betting market for the birth weight of royal babies."},
+  {type:'ad', logo:'princeton', slogan:"Wager the weight of the heir."},
+
+  {type:'desc', t:"A prediction market exclusively about the city of Chicago."},
+  {type:'ad', logo:'uchicago', slogan:"Bet on everything Chicago."},
+
+  {type:'desc', t:"A company that monitors people with gambling problems."},
+  {type:'ad', logo:'proctor', slogan:"We're watching you bet."},
+
+  {type:'desc', t:"A blog of scathing takedowns of big tech, written by guest contributors."},
+  {type:'ad', logo:'metacritic', slogan:"Big Tech, scored out of 100."},
+
+  {type:'desc', t:"A service for mailing handwritten penpal letters to Fat Albert."},
+  {type:'ad', logo:'openal', img:"openal.png", slogan:"Hey, hey, hey — you've got mail."},
+
+  {type:'desc', t:"A service that sends you pictures of attractive people you might like."},
+  {type:'ad', logo:'anthotpic', slogan:"Constitutionally attractive."},
+
+  {type:'desc', t:"A weapons company based on the Na'vi military from Avatar."},
+  {type:'ad', logo:'navidia', slogan:"Pandora-grade firepower."},
+];
+
+/* =========================================================================
+   SCROLLYTELLING ENGINE
+   Each step fills the screen; its contents reveal when the panel enters the
+   centre band and hide again when it leaves — driven purely by scroll.
+   ========================================================================= */
+const story = document.getElementById('story');
+
+function tagReveal(els, step){
+  [...els].forEach((c,k)=>{ c.classList.add('rv'); c.style.setProperty('--d', (0.05 + k*(step||0.1)) + 's'); });
+}
+
+function build(s){
+  const panel = document.createElement('div');
+  panel.className = 'panel ' + s.type;
+
+  if(s.type==='title'){
+    panel.innerHTML = s.html;
+    tagReveal(panel.children, 0.12);
+
+  } else if(s.type==='desc'){
+    const d = document.createElement('div'); d.className = 'desc'; d.textContent = s.t;
+    panel.appendChild(d);
+    tagReveal([d], 0.1);
+
+  } else if(s.type==='ad'){
+    // Prefer a supplied raster illustration (e.g. an image-model logo);
+    // fall back to the hand-coded SVG if the file is missing.
+    const mark = s.img
+      ? `<img src="${s.img}" alt="${s.slogan} logo" class="logoImg" onerror="this.outerHTML=LOGOS['${s.logo}']">`
+      : LOGOS[s.logo];
+    const ad = document.createElement('div'); ad.className = 'ad';
+    ad.innerHTML = `<div class="logoStage">${mark}</div>
+      <div class="slogan">${s.slogan}</div>`;
+    panel.appendChild(ad);
+    tagReveal(ad.children, 0.14);
+  }
+  return panel;
+}
+
+S.forEach(s=>{
+  const sec = document.createElement('section'); sec.className = 'step';
+  sec.appendChild(build(s));
+  story.appendChild(sec);
+});
+
+/* Reveal panels whose centre sits in the middle of the viewport; hide as they
+   leave. Scroll-driven with a rAF throttle. getBoundingClientRect keeps it
+   robust, and a viewport-height fallback avoids a blank page in odd contexts. */
+const panels = [...document.querySelectorAll('.panel')];
+const prog = document.getElementById('prog');
+const hint = document.getElementById('hint');
+let ticking = false;
+
+function vh(){ return window.innerHeight || document.documentElement.clientHeight || 800; }
+
+function reveal(){
+  const v = vh();
+  panels.forEach(p=>{
+    const r = p.getBoundingClientRect();
+    const c = r.top + r.height/2;            // panel centre, in viewport coords
+    p.classList.toggle('in', c > v*0.16 && c < v*0.84);
+  });
+}
+function progress(){
+  const h = document.documentElement;
+  const max = h.scrollHeight - h.clientHeight;
+  prog.style.width = (max>0 ? h.scrollTop/max*100 : 0) + '%';
+  if(h.scrollTop > 40) hint.style.opacity = 0;
+}
+function tick(){ if(!ticking){ ticking = true; requestAnimationFrame(()=>{ reveal(); progress(); ticking = false; }); } }
+
+addEventListener('scroll', tick, {passive:true});
+addEventListener('resize', tick, {passive:true});
+addEventListener('load', ()=>{ reveal(); progress(); });
+reveal(); progress();
+/* never leave the opening screen blank */
+if(!document.querySelector('.panel.in') && panels[0]) panels[0].classList.add('in');
+</script>
+</body>
+</html>
